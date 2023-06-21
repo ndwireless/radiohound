@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 '''
 Make a direct MQTT connection to the given IP address and submit a scan request (the payload).  
 Author: Randy Herban @ Notre Dame
