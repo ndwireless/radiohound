@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
 Make a direct MQTT connection to the given IP address and submit a scan request (the payload).  
-Author: Randy Herban @ Notre Dame
+Author: Randy Herban, Xiangbo Meng @ Notre Dame
 '''
 import paho.mqtt.client as mqtt
 import queue
@@ -10,6 +10,8 @@ import time
 import simplejson as json
 import numpy
 import base64
+import matplotlib as plt
+from scipy import signal
 
 payload = {
   'task_name': 'tasks.legacy.rf.scan.periodogram',
@@ -73,14 +75,33 @@ while True:
       break
      
     if not response.empty():
-      response = response.get()
-      # Ignore feedback messages, but this can be used to check for command failures
-      if 'status' in payload:
+      message = response.get()
+      # Ignore feedback messages, but this can be used to check for failures
+      if 'status' in message:
         continue
 
-      # Unpack the data from the json and show some sample data
-      data = numpy.frombuffer(base64.b64decode(response['data']), dtype=response['type'])
-      print(f"Received {type(data)} with {data.size} elements")
-      print(data)
-      break
+      if message['metadata']['data_type'] == 'periodogram':
+        # Unpack the data from the json and show some sample data
+        data = numpy.frombuffer(base64.b64decode(message['data']), dtype=message['type'])
+        print(f"Received {type(data)} with {data.size} elements")
+        print(data)
+        break
+
+
+      if message['metadata']['data_type'] == 'raw':
+        decoded_data =  numpy.frombuffer(base64.b64decode(message['data']), dtype=message['type'])
+        volt_data = (decoded_data.astype(numpy.float32)/127.5)*0.512 - 0.512
+        print(decoded_data[0:8])  # raw integer values from adc
+        print(volt_data[0:8])     # converted voltage values
+        # perform FFT, fixed sample rate of 48msps and arbitrary nperseg
+        f, psd = signal.welch(volt_data, fs=48e6, nperseg=1024)
+        print(f)
+        print(psd[0:8])
+        # plot the spectrum, adjusting frequency to to be centered rather than left justified
+        # low path below 1GHz uses lower-side band mixing, so flip the spectrum.  high path uses upper-side band mixing
+        # plt.plot(f+message['center_frequency']-12e6, 10*numpy.log10(psd[::-1]))
+        # plt.xlabel('frequency [Hz]')
+        # plt.ylabel('PSD 10*log10(V**2/Hz)')
+        # plt.show()
+        break
 
