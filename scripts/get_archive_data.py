@@ -17,8 +17,8 @@ import requests
 
 parser = argparse.ArgumentParser(description='RadioHound Scan')
 parser.add_argument('--node', type=str)
-parser.add_argument('--start_date', type=str)
-parser.add_argument('--end_date', type=str)
+parser.add_argument('--start_date', type=str, help='YYYY-MM-DDTHH:MM:SS')
+parser.add_argument('--end_date', type=str, help='YYYY-MM-DDTHH:MM:SS')
 args = parser.parse_args()
 
 api = f'http://radiohound.ee.nd.edu:5000/archive?node_id={args.node}&start_date={args.start_date}&end_date={args.end_date}'
