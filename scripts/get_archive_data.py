@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 '''
 Downloads all scan data for given node and date range.  Scans are saved as individual json files in a directory named 'output'.
 You will need to contact ND staff to be allowed through the firewall.

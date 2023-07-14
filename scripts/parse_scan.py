@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 '''
  Parses a downloaded RadioHound scan file
 
