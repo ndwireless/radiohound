@@ -30,3 +30,11 @@ Send a JSON-formatted announce packet to the topic radiohound/clients/announce/M
    }
 }
 ```
+
+
+To minimize traffic, we use three levels of announce messages:
+- `INITIAL`, sent only at boot: contains full configuration of the node
+- `HEARTBEAT`, sent every 10 seconds: GPS, IP address, config version, display name
+- `ANNOUNCE`, sent every 60 seconds: Hostname, short_name, disk free/used, ansible timestamp, plus HEARTBEAT items above
+
+Nodes are marked offline after 20 seconds.
