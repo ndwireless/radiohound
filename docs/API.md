@@ -1,18 +1,18 @@
 # Connecting to the RadioHound Platform 
-- A RadioHound node must be able to uniquely identify itself (using the ethernet mac address) and connect to the RadioHound infrastructure.  Ideally, the RadioHound node should also be able to denote its hardware configuration and / or environment (location, motion, etc.).  
+- A RadioHound node must be able to uniquely identify itself (using the ethernet mac address) and connect to the RadioHound platform.  Ideally, the RadioHound node should also be able to denote its hardware configuration and / or environment (location, motion, etc.).  
 - The RadioHound data infrastructure must be able to provide configuration information for each RadioHound node ("marching orders").
 - If a persistent network connection exists, the RadioHound infrastructure should be able to monitor the status of a RadioHound node in the field.     
-- RadioHound nodes should utilize the configuration information to control how data is gathered and then periodically report said data to the centralized infrastructure including performance data with respect to processing.  
+
 
 ## Connecting to MQTT
-Use an MQTT client and connect to radiohound.ee.nd.edu port 1883 (we run mosquitto).  
+Use an MQTT client and connect to radiohound.ee.nd.edu port 1883 (we run the mosquitto MQTT server).  
 Send a JSON-formatted announce packet to the topic `radiohound/clients/announce/MAC_ADDRESS` containing the following:
 
 ```javascript
 {
    "message":"INITIAL",
    "payload":{
-      "mac_address":"98f07b24025a",           //unique identifier for the node, used heavily in the system
+      "mac_address":"98f07b24025a",           //unique identifier for the node, used heavily within the platform
       "latitude":41.69955333118339,
       "longitude":-86.23723130815955,
       "altitude":0.0,
@@ -37,13 +37,77 @@ Send a JSON-formatted announce packet to the topic `radiohound/clients/announce/
 }
 ```
 
-
 To minimize traffic, we use three levels of announce messages:
 - `INITIAL`, sent only at boot: contains full configuration of the node
 - `HEARTBEAT`, sent every 10 seconds: GPS, IP address, config version, display name
 - `ANNOUNCE`, sent every 60 seconds: Hostname, short_name, disk free/used, ansible timestamp, plus HEARTBEAT items above
 
-Nodes will be marked offline after 20 seconds.
+Nodes are marked offline after 20 seconds.
+
+
+## Sending Scan Data
+
+The RadioHound platform is built around scanning, visualizing and reporting fft-based spectrum data.  Scan data can be requested from the platform (see Receiving Commands below), sent in as part of an Experiment (see Experiment below) or from a custom script.  
+
+Scan data should be formatted like so:
+
+```javascript
+{
+   "data": *,                                //See 'Understanding the Data' below
+   "type":"float32",
+   "mac_address":"98f07b24025a",
+   "short_name":"Beagle V3.4-016 ",
+   "sample_rate":24000000.0,
+   "center_frequency":2000000000.0,
+   "timestamp":"2023-05-26T18:24:53.958385+00:00",
+   "metadata":{
+      "data_type":"periodogram",
+      "fmin":1988000000.0,                   //Return actual scan boundaries based on hardware capabilities
+      "fmax":2012000000.0,
+      "n_periodogram_points":1024.0,         //Number of fft bins
+```
+
+
+Additional optional data can be included:
+```javascript
+{
+   "software_version":"v0.10b25",            //optional
+   "latitude":41.69955333118339,             //optional
+   "longitude":-86.23723130815955,           //optional
+   "altitude":0.0,                           //optional
+   "batch":0,                                //optional - corresponds with batch_id from request
+   "hardware_version":"3.4",                 //optional - RadioHound specific
+   "hardware_board_id":"016",                //optional - RadioHound specific
+   "gain":1,                                 //optional
+   "metadata":{
+      "gps_lock":false,
+      "scan_time":0.12714433670043945,       //Time taken to take scan, including pre- and post-processing steps
+      "archiveResult":true                   //Should result be saved in database
+   },
+   "requested":{                             //Originating request
+      "fmin":1990000000,
+      "fmax":2010000000,
+      "span":20000000,
+      "rbw":23437.5,
+      "samples":1024
+   }
+}
+```
+
+
+### Understanding the Data 
+
+Scan data is a discrete estimate of the power spectrum over the given span with bins of width RBW.  
+
+The data is stored in a Float32/Single array (adhering to the IEEE754 Standard). The length of the array is N_periodogram_points and the float values are stored in a little endian byte order. When creating the JSON payload for transmission, the data field should encoded using the Base64 alphabet defined in RFC 4648.
+
+------------------------
+
+
+
+
+
+
 
 ## Receiving commands
 Commands to a node will be sent as JSON-formatted packets to two possible topics:
@@ -111,52 +175,7 @@ The main function of the RadioHound platform is performing a periodogram and thi
 }
 ```
 
-A periodogram reply will have the following response:
-```javascript
-{
-   "data": *,                                //See 'Understanding the Data' below
-   "type":"float32",
-   "mac_address":"98f07b24025a",
-   "short_name":"Beagle V3.4-016 ",
-   "sample_rate":24000000.0,
-   "center_frequency":2000000000.0,
-   "timestamp":"2023-05-26T18:24:53.958385+00:00",
-   "gain":1,
-   "software_version":"v0.10b25",
-   "latitude":41.69955333118339,             //optional
-   "longitude":-86.23723130815955,           //optional
-   "altitude":0.0,                           //optional
-   "batch":0,                                //optional - corresponds with batch_id from request
-   "hardware_version":"3.4",                 //optional - RadioHound specific
-   "hardware_board_id":"016",                //optional - RadioHound specific
-   "metadata":{
-      "data_type":"periodogram",
-      "fmin":1988000000.0,                   //Return actual scan boundaries based on hardware capabilities
-      "fmax":2012000000.0,
-      "n_periodogram_points":1024.0,         //Number of fft bins
-      "gps_lock":false,
-      "scan_time":0.12714433670043945,       //Time taken to take scan, including pre- and post-processing steps
-      "archiveResult":true                   //Should result be saved in database
-   },
-   "requested":{                             //Originating request
-      "fmin":1990000000,
-      "fmax":2010000000,
-      "span":20000000,
-      "rbw":23437.5,
-      "samples":1024
-   }
-}
-```
 
-
-
-### Understanding the Data 
-
-Scan data is a discrete estimate of the power spectrum over the given span with bins of width RBW.  
-
-The data is stored in a Float32/Single array (adhering to the IEEE754 Standard). The length of the array is N_periodogram_points and the float values are stored in a little endian byte order. When creating the JSON payload for transmission, the data field should encoded using the Base64 alphabet defined in RFC 4648.
-
-------------------------
 
 # Additional Commands
 
