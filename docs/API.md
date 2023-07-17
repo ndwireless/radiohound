@@ -6,7 +6,7 @@
 
 ## Connecting to MQTT
 Use an MQTT client and connect to radiohound.ee.nd.edu port 1883 (we run the mosquitto MQTT server).  
-Send a JSON-formatted announce packet to the topic `radiohound/clients/announce/MAC_ADDRESS` containing the following:
+Send a JSON-formatted announce packet to the topic `radiohound/clients/announce/MAC_ADDRESS` containing the minimum details:
 
 ```javascript
 {
@@ -19,23 +19,10 @@ Send a JSON-formatted announce packet to the topic `radiohound/clients/announce/
       "IP_addr":"10.1.1.1",
       "display_name":"Beagle V3.4-016",       //automatically created from group name and RadioHound version/serial
       "hostname":"025a",                      //last 4 characters of mac address
-      "system_version":"Debian GNU/Linux 9 (stretch)",
-      "kernelVersion":"4.9.36-ti-r46",
-      "groups":[ "Beagle"],                   //sent from server
-      "config_version":1684434463,            //if using config sent from server
-      "short_name":"",                        //optional nickname, e.g. “Randy’s Office”
-      "disk_free":"26G",                      //optional
-      "disk_used":"2.6G",                     //optional
-      "gitBranch":"HEAD detached at v0.10b25",//optional
-      "jobs":{ },                             //optional list of background jobs from experiments
-      "ansible_timestamp":1680106088,         //RadioHound specific
-      "rh_hardware_version":"3.4",            //RadioHound specific
-      "rh_hardware_attached":true,            //RadioHound specific
-      "rh_software_version":"v0.10b25",       //RadioHound specific
-      "mspVersion":"53",                      //RadioHound specific
    }
 }
 ```
+A full list is available at [Announce](announce.md):
 
 To minimize traffic, we use three levels of announce messages:
 - `INITIAL`, sent only at boot: contains full configuration of the node
@@ -49,7 +36,7 @@ Nodes are marked offline after 20 seconds.
 
 The RadioHound platform is built around scanning, visualizing and reporting fft-based spectrum data.  Scan data can be requested from the platform (see Receiving Commands below), sent in as part of an Experiment (see Experiment below) or from a custom script.  
 
-Scan data should be formatted like so:
+The minimum required scan data should be formatted like so:
 
 ```javascript
 {
@@ -66,34 +53,7 @@ Scan data should be formatted like so:
       "fmax":2012000000.0,
       "n_periodogram_points":1024.0,         //Number of fft bins
 ```
-
-
-Additional optional data can be included:
-```javascript
-{
-   "software_version":"v0.10b25",            //optional
-   "latitude":41.69955333118339,             //optional
-   "longitude":-86.23723130815955,           //optional
-   "altitude":0.0,                           //optional
-   "batch":0,                                //optional - corresponds with batch_id from request
-   "hardware_version":"3.4",                 //optional - RadioHound specific
-   "hardware_board_id":"016",                //optional - RadioHound specific
-   "gain":1,                                 //optional
-   "metadata":{
-      "gps_lock":false,
-      "scan_time":0.12714433670043945,       //Time taken to take scan, including pre- and post-processing steps
-      "archiveResult":true                   //Should result be saved in database
-   },
-   "requested":{                             //Originating request
-      "fmin":1990000000,
-      "fmax":2010000000,
-      "span":20000000,
-      "rbw":23437.5,
-      "samples":1024
-   }
-}
-```
-
+Full scan data is available at [Scan Data](scandata.md)
 
 ### Understanding the Data 
 
