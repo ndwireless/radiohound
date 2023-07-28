@@ -42,3 +42,6 @@ Scan data is a discrete estimate of the power spectrum over the given span with 
 
 The data is stored in a Float32/Single array (adhering to the IEEE754 Standard). The length of the array is N_periodogram_points and the float values are stored in a little endian byte order. When creating the JSON payload for transmission, the data field should encoded using the Base64 alphabet defined in RFC 4648.
 
+## Parsing Scan Data
+
+A sample Python script is available [here](https://github.com/ndwireless/radiohound/blob/main/scripts/parse_scan.py) to parse the JSON file.
