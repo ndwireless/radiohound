@@ -21,7 +21,9 @@ parser.add_argument('--node', type=str)
 parser.add_argument('--start_date', type=str, help='YYYY-MM-DDTHH:MM:SS')
 parser.add_argument('--end_date', type=str, help='YYYY-MM-DDTHH:MM:SS')
 args = parser.parse_args()
-os.mkdir('output')
+if not os.path.isifile('output'):
+  os.mkdir('output')
+
 
 api = f'http://radiohound.ee.nd.edu:5000/archive?node_id={args.node}&start_date={args.start_date}&end_date={args.end_date}'
 results = requests.get(api).json()
@@ -29,7 +31,7 @@ for result in results:
     data_id = result['data_id']
     fmin = result['fmin']
     mac_address = result['mac_address']
-    timestamp = result['timestamp'].replace(' ', '_')
+    timestamp = result['timestamp'].replace(' ', '_').replace(':','').split('.')[0] # replace colons, spaces and trim off the milliseconds
     #ip_address = result['IP_addr'].replace('192.168.7.2','').replace('192.168.6.2','').rstrip().split(' ')[0]
     print(f"Found scan {data_id} {timestamp}")
     data_request = f'http://radiohound.ee.nd.edu:5000/data?id={data_id}'
