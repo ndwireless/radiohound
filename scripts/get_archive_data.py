@@ -15,18 +15,41 @@ import base64
 import ipaddress
 import requests
 import os
+import sys
+import re
 
 parser = argparse.ArgumentParser(description='RadioHound Scan')
 parser.add_argument('--node', type=str)
 parser.add_argument('--start_date', type=str, help='YYYY-MM-DDTHH:MM:SS')
 parser.add_argument('--end_date', type=str, help='YYYY-MM-DDTHH:MM:SS')
 args = parser.parse_args()
-if not os.path.isifile('output'):
+if not os.path.isdir('output'):
   os.mkdir('output')
 
+args.start_date = args.start_date.replace(' ', 'T')
+args.end_date = args.end_date.replace(' ', 'T')
+# Auto-append time if not entered
+if re.match("\d{4}-\d{2}-\d{2}$", args.start_date):
+    args.start_date += "T00:00:00"
+if re.match("\d{4}-\d{2}-\d{2}T00$", args.start_date):
+    args.start_date += ":00:00"
+if re.match("\d{4}-\d{2}-\d{2}T00:00$", args.start_date):
+    args.start_date += ":00"
+if re.match("\d{4}-\d{2}-\d{2}$", args.end_date):
+    args.end_date += "T23:59:00"
+if re.match("\d{4}-\d{2}-\d{2}T00$", args.end_date):
+    args.end_date += ":00:00"
+if re.match("\d{4}-\d{2}-\d{2}T00:00$", args.end_date):
+    args.end_date += ":00"
 
-api = f'http://radiohound.ee.nd.edu:5000/archive?node_id={args.node}&start_date={args.start_date}&end_date={args.end_date}'
-results = requests.get(api).json()
+
+try:
+    api = f'http://radiohound.ee.nd.edu:5000/archive?node_id={args.node}&start_date={args.start_date}&end_date={args.end_date}'
+    results = requests.get(api).json()
+except:
+    print(f"Error requesting data from server\n{api}")
+    sys.exit(1)
+
 for result in results:
     data_id = result['data_id']
     fmin = result['fmin']
