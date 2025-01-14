@@ -54,16 +54,18 @@ except:
     sys.exit(1)
 
 for result in results:
-    data_id = result['data_id']
-    fmin = result['fmin']
-    mac_address = result['mac_address']
-    timestamp = result['timestamp'].replace(' ', '_').replace(':','').split('.')[0] # replace colons, spaces and trim off the milliseconds
-    #ip_address = result['IP_addr'].replace('192.168.7.2','').replace('192.168.6.2','').rstrip().split(' ')[0]
-    print(f"Found scan {data_id} {timestamp}")
-    data_request = f'http://radiohound.ee.nd.edu:5000/data?id={data_id}'
-    data = requests.get(data_request).json()
-    print(f"Data: {data}")
-    file = open(f"output/{data_id}-{mac_address}-{timestamp}.json",'w')
-    file.write(json.dumps(data))
-    file.close()
+    try:
+        data_id = result['data_id']
+        fmin = result['fmin']
+        timestamp = result['timestamp'].replace(' ', '_').replace(':','').split('.')[0] # replace colons, spaces and trim off the milliseconds
+        print(f"Found scan {data_id} {timestamp}")
+        data_request = f'http://radiohound.ee.nd.edu:5000/data?id={data_id}'
+        data = requests.get(data_request).json()
+        mac_address = data['mac_address']
+        #print(f"Data: {data}")
+        file = open(f"output/{data_id}-{mac_address}-{timestamp}.json",'w')
+        file.write(json.dumps(data))
+        file.close()
+    except Exception as e:
+        print(f":{e}\nData was: {result}")
 
