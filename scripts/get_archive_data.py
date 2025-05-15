@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 '''
-Downloads all scan data for given node or experiment and date range.  You will need to contact ND staff to be allowed through the firewall.
+Downloads all scan data for given node or experiment and date range.  You will need to be on the Notre Dame network or contact ND staff to be allowed through the firewall.
 
 python3 get_archive_data.py --node (MAC_ADDRESS|EXPERIMENT_ID) --start_date 'YYYY-MM-DD HH:MM:SS' --end_date 'YYYY-MM-DD HH:MM:SS'
 
-The mac address can be specified with or without colons and they'll be automatically stripped off.  
+The full mac address can be specified with or without colons and they'll be automatically stripped off.  
 Experiqment ID will be in the form of "experiment_NNNN" with the numeric ID from the website.  
-Dates can also be specified as: YYYY-MM-DD or YYYY-MM-DD HH:MM.  
+Dates can also be specified as: YYYY-MM-DD or YYYY-MM-DD HH:MM.  Times are all UTC based.
 
 Scans are saved as individual json files in a directory named 'output'.  To understand the format, look at the parse_scan.py file in this repository.  
 
