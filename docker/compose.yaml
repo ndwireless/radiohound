@@ -1,0 +1,54 @@
+services:
+  # icarus:
+  #   image: randyherban/icarus:latest
+  #   env_file: ".env"
+  #   volumes:
+  #     - /opt/radiohound/.ssh:/opt/radiohound/.ssh
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /opt/radiohound/docker:/opt/radiohound/docker
+  #   environment:
+  #     - DOCKER_COMPOSE_FILE=/opt/radiohound/docker/compose.yaml
+  #   network_mode: "host"
+  #   container_name: "icarus"
+  #   restart: unless-stopped
+
+  radiohound_web:
+    image: randyherban/radiohound_web:latest
+    env_file: ".env"
+    network_mode: "host"
+    container_name: "radiohound_web"
+    restart: unless-stopped
+
+  radiohound_app:
+    image: randyherban/radiohound_app:latest
+    env_file: ".env"
+    network_mode: "host"
+    container_name: "radiohound_app"
+    restart: unless-stopped
+
+  mqtt:
+    image: "eclipse-mosquitto:2.0.22"
+    container_name: "mqtt"
+    restart: unless-stopped
+    volumes:
+      - ./mosquitto:/etc/mosquitto
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    network_mode: "host"
+
+  mongodb:
+    image: "mongodb/mongodb-community-server:8.2.1-ubuntu2204"
+    container_name: "mongodb"
+    restart: unless-stopped
+    ports:
+      - 27017:27017
+    volumes:
+        - mongodb:/data/db
+    env_file: ".env"
+    networks:
+      - mongodb
+
+volumes:
+    mongodb:
+
+networks:
+  mongodb:

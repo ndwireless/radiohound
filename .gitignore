@@ -1,0 +1,11 @@
+build
+nenv*/
+.vscode/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+.env.*
+node_modules/
+output/
+.DS_Store
